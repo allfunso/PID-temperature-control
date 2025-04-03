@@ -15,13 +15,14 @@ const int coolerPin = 10;  // Digital pin connected to the cooler relay (or MOSF
 
 
 // PID Parameters
-double Kp = 1.0, Ki = 5.0, Kd = 0.10;  // Tune these constants based on your system
+double Kp = 1.5, Ki = 5.0, Kd = 0.10;  // Tune these constants based on your system
 double setpoint = 26.0;  // Desired temperature (°C)
 double input, output;    // Variables for PID controller
 double heaterOutput, coolerOutput; // Variables for actuators
 
 // Create PID instance
 PID myPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
+
 
 void setup() {
   Serial.begin(9600);
@@ -56,7 +57,9 @@ void loop() {
   Serial.print("Temperature: ");
   Serial.print(input);
   Serial.print(" °C, Heater Output: ");
-  Serial.println(output);
+  Serial.print(heaterOutput);
+  Serial.print(", Cooler Output: ");
+  Serial.println(coolerOutput);
 
   delay(1000);  // Delay to allow the temperature to stabilize before the next reading
 }
@@ -75,16 +78,16 @@ double measureTemperature(){
   return measurement;
 }
 
-double controlCooler(output){
+double controlHeater(double output){
   if (output >= 128) {
     return (output - 128) * 2;
   }
   return 0;
 }
 
-double controlHeater(output){
+double controlCooler(double output){
   if (output < 128) {
-    return output * 2;
+    return (128 - output) * 2;
   }
   return 0;
 }
