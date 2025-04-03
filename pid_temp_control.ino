@@ -15,8 +15,8 @@ const int coolerPin = 10;  // Digital pin connected to the cooler relay (or MOSF
 
 
 // PID Parameters
-double Kp = 1.5, Ki = 5.0, Kd = 0.10;  // Tune these constants based on your system
-double setpoint = 26.0;  // Desired temperature (°C)
+double Kp = 1.8, Ki = 5.0, Kd = 0.10;  // Tune these constants based on your system
+double setpoint = 27.0;  // Desired temperature (°C)
 double input, output;    // Variables for PID controller
 double heaterOutput, coolerOutput; // Variables for actuators
 
@@ -79,14 +79,14 @@ double measureTemperature(){
 }
 
 double controlHeater(double output){
-  if (output >= 128) {
+  if (output >= 128) && (input < setpoint - 2) {
     return (output - 128) * 2;
   }
   return 0;
 }
 
 double controlCooler(double output){
-  if (output < 128) {
+  if (output < 128) && (input > setpoint + 2) {
     return (128 - output) * 2;
   }
   return 0;
