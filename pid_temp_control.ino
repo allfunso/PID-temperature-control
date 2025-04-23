@@ -20,6 +20,11 @@ double setpoint = 27.0;  // Desired temperature (°C)
 double input, output;    // Variables for PID controller
 double heaterOutput, coolerOutput; // Variables for actuators
 
+// Control variables
+double maxOutput = 255;
+double delta = 1.0;
+double lowerLimit = 0, upperLimit = 30;
+
 // Create PID instance
 PID myPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 
@@ -34,13 +39,26 @@ void setup() {
 
   // Initialize PID
   myPID.SetMode(AUTOMATIC);   // Turn on the PID controller
-  myPID.SetOutputLimits(0, 255);  // Output range for the PWM signal (0-255)
+  myPID.SetOutputLimits(0, maxOutput);  // Output range for the PWM signal (0-255)
 }
 
 
 void loop() {
  
   input = measureTemperature();
+
+  // Ensure temperature is within operational limits. Override PID if necessary
+  while (input > upperLimit) {
+    analogWrite(coolerPin, maxOutput);
+    Serial.println("EMERGENCY: Dangerously hot. Systems compromised.");
+    delay(1000);
+  }
+
+  while (input < lowerLimit) {
+    analogWrite(heaterPin, maxOutput);
+    Serial.println("EMERGENCY: Dangerously cold. Systems compromised.");
+    delay(1000);
+  }
  
  
   // Compute PID output
@@ -79,16 +97,22 @@ double measureTemperature(){
 }
 
 double controlHeater(double output){
-  if (output >= 128) && (input < setpoint - 2) {
+  if ((output >= 128) && (input < (setpoint - delta))) {
     return (output - 128) * 2;
   }
   return 0;
 }
 
 double controlCooler(double output){
-  if (output < 128) && (input > setpoint + 2) {
+  if ((output < 128) && (input > (setpoint + delta))) {
     return (128 - output) * 2;
   }
   return 0;
 }
+
+
+
+
+
+
 
